@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/custom")
 @Tag(name="CUSTOM", description = "눈의 설정 정보 api")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SnowCustomController {
     private final SnowCustomService snowCustomService;
     private final S3Service s3Service;
@@ -53,5 +55,12 @@ public class SnowCustomController {
     @ApiResponse(responseCode = "200", description = "성공")
     public ResponseEntity<List<String>> getImageList(){
         return ResponseEntity.ok().body(s3Service.findImageUrls("custom"));
+    }
+
+    @Operation(summary="눈송이 다운받기")
+    @ApiResponse(responseCode = "200", description = "성공")
+    @GetMapping("/download")
+    public ResponseEntity<UrlResource> downloadGif(@RequestBody String filaName){
+        return s3Service.downloadImage(filaName);
     }
 }

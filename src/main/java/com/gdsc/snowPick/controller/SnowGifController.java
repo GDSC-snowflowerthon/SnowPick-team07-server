@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/gif")
 @RequiredArgsConstructor
 @Tag(name="GIF", description = "눈내리는 GIF 처리")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SnowGifController {
 
     private final S3Service s3Service;
@@ -42,5 +44,12 @@ public class SnowGifController {
     @GetMapping
     public ResponseEntity<List<String>> getGifList(){
         return ResponseEntity.ok().body(s3Service.findImageUrls("gif"));
+    }
+
+    @Operation(summary="gif 다운받기")
+    @ApiResponse(responseCode = "200", description = "성공")
+    @GetMapping("/download")
+    public ResponseEntity<UrlResource> downloadGif(@RequestBody String filaName){
+        return s3Service.downloadImage(filaName);
     }
 }

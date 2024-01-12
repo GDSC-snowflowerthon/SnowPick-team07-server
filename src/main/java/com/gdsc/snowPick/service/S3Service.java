@@ -2,13 +2,19 @@ package com.gdsc.snowPick.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -78,5 +84,17 @@ public class S3Service {
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid S3 URL", e);
         }
+    }
+
+    public ResponseEntity<UrlResource> downloadImage(String originalFilename) {
+        UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, originalFilename));
+
+        String contentDisposition = "attachment; filename=\"" +  originalFilename + "\"";
+
+        // header에 CONTENT_DISPOSITION 설정을 통해 클릭 시 다운로드 진행
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .body(urlResource);
+
     }
 }
