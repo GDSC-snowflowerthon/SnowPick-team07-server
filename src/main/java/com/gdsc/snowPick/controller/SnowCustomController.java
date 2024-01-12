@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class SnowCustomController {
     private final SnowCustomService snowCustomService;
     private final S3Service s3Service;
 
+    /*
     @PostMapping("/image")
     @Operation(summary="눈송이 이미지 저장")
     @ApiResponse(responseCode = "200", description = "성공")
@@ -31,6 +33,17 @@ public class SnowCustomController {
         String url=s3Service.saveFile("custom", image);
         return ResponseEntity.ok().body(url);
     }
+
+
+     */
+    @PostMapping("/image")
+    @Operation(summary="눈송이 이미지 저장")
+    @ApiResponse(responseCode = "200", description = "성공")
+    public ResponseEntity<String> getImageUrl(@RequestPart String base64Photo) throws IOException {
+        String url=s3Service.saveBase64Image("custom", base64Photo);
+        return ResponseEntity.ok().body(url);
+    }
+
 
 
     //눈 커스텀 정보 저장
@@ -41,6 +54,8 @@ public class SnowCustomController {
 //
         return ResponseEntity.ok().body(snowCustomService.createSnowCustom(snowDto));
     }
+
+
 
     // find all SnowCustom
     @GetMapping
@@ -60,7 +75,14 @@ public class SnowCustomController {
     @Operation(summary="눈송이 다운받기")
     @ApiResponse(responseCode = "200", description = "성공")
     @GetMapping("/download")
-    public ResponseEntity<UrlResource> downloadGif(@RequestBody String filaName){
-        return s3Service.downloadImage(filaName);
+    public ResponseEntity<ByteArrayResource> downloadGif(@RequestParam(value = "image") String image){
+        byte[] data = s3Service.downloadFile("image", image);
+        ByteArrayResource resource = new ByteArrayResource(data);
+        return ResponseEntity
+                .ok()
+                .contentLength(data.length)
+                .header("Content-type", "application/octet-stream")
+                .header("Content-disposition", "attachment; filename=\"" + image + "\"")
+                .body(resource);
     }
 }

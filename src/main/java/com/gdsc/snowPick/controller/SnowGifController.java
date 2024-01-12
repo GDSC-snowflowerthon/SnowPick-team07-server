@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +50,14 @@ public class SnowGifController {
     @Operation(summary="gif 다운받기")
     @ApiResponse(responseCode = "200", description = "성공")
     @GetMapping("/download")
-    public ResponseEntity<UrlResource> downloadGif(@RequestBody String filaName){
-        return s3Service.downloadImage(filaName);
+    public ResponseEntity<ByteArrayResource> downloadGif(@RequestParam(value = "image") String image){
+        byte[] data = s3Service.downloadFile("gif", image);
+        ByteArrayResource resource = new ByteArrayResource(data);
+        return ResponseEntity
+                .ok()
+                .contentLength(data.length)
+                .header("Content-type", "application/octet-stream")
+                .header("Content-disposition", "attachment; filename=\"" + image + "\"")
+                .body(resource);
     }
 }

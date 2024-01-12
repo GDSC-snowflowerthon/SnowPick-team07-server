@@ -1,9 +1,11 @@
 package com.gdsc.snowPick.service;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -86,6 +89,7 @@ public class S3Service {
         }
     }
 
+    /*
     public ResponseEntity<UrlResource> downloadImage(String originalFilename) {
         UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, originalFilename));
 
@@ -96,5 +100,44 @@ public class S3Service {
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                 .body(urlResource);
 
+    }
+
+     */
+    public byte[] downloadFile(String bucketName, String image) {
+
+        String filename = image.substring(image.lastIndexOf('/') + 1);
+        System.out.println("filename = " + filename);
+        S3Object s3Object = amazonS3.getObject(bucketName, filename);
+        S3ObjectInputStream inputStream = s3Object.getObjectContent();
+        try {
+            byte[] content = IOUtils.toByteArray(inputStream);
+            return content;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //BASE64를 디코딩하여 S3에 저장
+    public String saveBase64Image(String directory, String base64Image) {
+        // 파일 이름 생성
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String fileName = directory + "/" + timeStamp + ".jpg";
+
+        try {
+            // Base64 인코딩된 문자열을 바이트 배열로 디코딩
+            byte[] decodedBytes = Base64.decodeBase64(base64Image);
+
+            // S3에 업로드
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedBytes);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(decodedBytes.length);
+            metadata.setContentType("image/jpeg");
+
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
+            return amazonS3.getUrl(bucket, fileName).toString();
+        } catch (AmazonServiceException e) {
+            throw new RuntimeException("S3 업로드 중 오류 발생", e);
+        }
     }
 }
