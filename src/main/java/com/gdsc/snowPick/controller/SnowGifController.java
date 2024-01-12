@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/gif")
@@ -34,5 +35,12 @@ public class SnowGifController {
     public ResponseEntity<?> deleteFrame(@RequestBody String url){
         s3Service.deleteFrameImage(url);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary="gif 리스트 뿌려주기")
+    @ApiResponse(responseCode = "200", description = "성공")
+    @GetMapping
+    public ResponseEntity<List<String>> getGifList(){
+        return ResponseEntity.ok().body(s3Service.findImageUrls("gif"));
     }
 }

@@ -23,7 +23,7 @@ public class SnowCustomController {
     private final S3Service s3Service;
 
     @PostMapping("/image")
-    @Operation(summary="이미지 url받기")
+    @Operation(summary="눈송이 이미지 저장")
     @ApiResponse(responseCode = "200", description = "성공")
     public ResponseEntity<String> getImageUrl(@RequestPart MultipartFile image) throws IOException {
         String url=s3Service.saveFile("custom", image);
@@ -33,7 +33,7 @@ public class SnowCustomController {
 
     //눈 커스텀 정보 저장
     @PostMapping
-    @Operation(summary="눈 정보 저장하기")
+    @Operation(summary="!사용X! 눈 정보 저장하기")
     @ApiResponse(responseCode = "200", description = "성공")
     public ResponseEntity<SnowDto> createSnowCustom(@RequestBody SnowDto snowDto) {
 //
@@ -42,9 +42,16 @@ public class SnowCustomController {
 
     // find all SnowCustom
     @GetMapping
-    @Operation(summary="눈 정보 리스트 가져오기")
+    @Operation(summary="!사용X! 눈 정보 리스트 가져오기")
     @ApiResponse(responseCode = "200", description = "성공")
     public ResponseEntity<List<SnowDto>> getAllSnowCustoms() {
         return ResponseEntity.ok().body(snowCustomService.getAllSnowCustoms());
+    }
+
+    @GetMapping("/image")
+    @Operation(summary="눈송이 이미지 리스트 가져오기")
+    @ApiResponse(responseCode = "200", description = "성공")
+    public ResponseEntity<List<String>> getImageList(){
+        return ResponseEntity.ok().body(s3Service.findImageUrls("custom"));
     }
 }
